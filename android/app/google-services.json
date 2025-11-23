@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "496371983416",
+    "project_id": "fact-flash",
+    "storage_bucket": "fact-flash.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:496371983416:android:817a818076f596fc2f72cd",
+        "android_client_info": {
+          "package_name": "com.example.fact_flash"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcczsupzXRrQIi8M0zUo7LTiN3pD03IU8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -30,11 +30,12 @@ jobs:
         run: flutter build web
         
       # 4. Deploy to Firebase LIVE Hosting Channel
-      # When 'channelId' is omitted, this action deploys to the LIVE channel.
       - name: Deploy to Firebase Live Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_FACT_FLASH }}
           projectId: fact-flash
-          # No channelId means deployment goes to the live production site.
+          # 👇 CRITICAL FIX: Explicitly setting channelId to 'live' forces a production deploy 
+          # and stops the action from incorrectly using the 'hosting:channel:deploy' command.
+          channelId: live

@@ -11,6 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # 👇 ADD THIS STEP to set up the Flutter SDK
+      - uses: subosito/flutter-action@v2 
+        with:
+          channel: 'stable' # or 'beta' or 'master', depending on your needs
+          # flutter-version: '3.19.0' # Optional: Specify a specific version if needed
+          
+      # 👇 ADD THIS STEP to get dependencies
+      - run: flutter pub get
+          
       - run: flutter build web
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:

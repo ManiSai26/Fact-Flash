@@ -40,7 +40,7 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -218,6 +218,7 @@ class _AdminScreenState extends State<AdminScreen>
           tabs: const [
             Tab(text: 'Manual Entry'),
             Tab(text: 'Bulk Import (Excel)'),
+            Tab(text: 'Manage Questions'),
           ],
         ),
       ),
@@ -225,7 +226,11 @@ class _AdminScreenState extends State<AdminScreen>
           ? const Center(child: CircularProgressIndicator())
           : TabBarView(
               controller: _tabController,
-              children: [_buildManualEntryTab(), _buildBulkImportTab()],
+              children: [
+                _buildManualEntryTab(),
+                _buildBulkImportTab(),
+                _buildManageQuestionsTab(),
+              ],
             ),
     );
   }
@@ -354,6 +359,244 @@ class _AdminScreenState extends State<AdminScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // Manage Questions Tab Logic
+  String _searchQuery = '';
+
+  Widget _buildManageQuestionsTab() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: TextField(
+            decoration: const InputDecoration(
+              labelText: 'Search Questions',
+              prefixIcon: Icon(Icons.search),
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (value) {
+              setState(() {
+                _searchQuery = value.toLowerCase();
+              });
+            },
+          ),
+        ),
+        Expanded(
+          child: StreamBuilder<List<Question>>(
+            stream: _quizService.getQuestions(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final questions = snapshot.data ?? [];
+              final filteredQuestions = questions.where((q) {
+                return q.questionText.toLowerCase().contains(_searchQuery);
+              }).toList();
+
+              if (filteredQuestions.isEmpty) {
+                return const Center(child: Text('No questions found.'));
+              }
+
+              return ListView.builder(
+                itemCount: filteredQuestions.length,
+                itemBuilder: (context, index) {
+                  final question = filteredQuestions[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: ListTile(
+                      title: Text(
+                        question.questionText,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text('${question.options.length} options'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () => _showEditDialog(question),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteQuestion(question),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _deleteQuestion(Question question) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Question'),
+        content: const Text('Are you sure you want to delete this question?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && question.id != null) {
+      await _quizService.deleteQuestion(question.id!);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Question deleted.')));
+      }
+    }
+  }
+
+  void _showEditDialog(Question question) {
+    // Pre-fill controllers
+    final qController = TextEditingController(text: question.questionText);
+    final optControllers = List.generate(
+      4,
+      (i) => TextEditingController(
+        text: i < question.options.length
+            ? question.options[i].description
+            : '',
+      ),
+    );
+    final expControllers = List.generate(
+      4,
+      (i) => TextEditingController(
+        text: i < question.options.length
+            ? (question.options[i].explanation ?? '')
+            : '',
+      ),
+    );
+    int correctIdx = 0;
+    for (int i = 0; i < question.options.length; i++) {
+      if (question.options[i].isCorrect) {
+        correctIdx = i;
+        break;
+      }
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateDialog) {
+          return AlertDialog(
+            title: const Text('Edit Question'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: qController,
+                    decoration: const InputDecoration(
+                      labelText: 'Question Text',
+                    ),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 10),
+                  ...List.generate(4, (index) {
+                    return Column(
+                      children: [
+                        Row(
+                          children: [
+                            Radio<int>(
+                              value: index,
+                              groupValue: correctIdx,
+                              onChanged: (val) {
+                                setStateDialog(() => correctIdx = val!);
+                              },
+                            ),
+                            Expanded(
+                              child: TextField(
+                                controller: optControllers[index],
+                                decoration: InputDecoration(
+                                  labelText: 'Option ${index + 1}',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (index == correctIdx)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 48),
+                            child: TextField(
+                              controller: expControllers[index],
+                              decoration: const InputDecoration(
+                                labelText: 'Explanation',
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  }),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final options = List.generate(4, (index) {
+                    return Option(
+                      description: optControllers[index].text.trim(),
+                      isCorrect: index == correctIdx,
+                      explanation: expControllers[index].text.trim().isNotEmpty
+                          ? expControllers[index].text.trim()
+                          : null,
+                    );
+                  });
+
+                  final updatedQuestion = Question(
+                    id: question.id,
+                    questionText: qController.text.trim(),
+                    options: options,
+                  );
+
+                  if (question.id != null) {
+                    await _quizService.updateQuestion(
+                      question.id!,
+                      updatedQuestion,
+                    );
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Question updated.')),
+                      );
+                    }
+                  }
+                },
+                child: const Text('Update'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

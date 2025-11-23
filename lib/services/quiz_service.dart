@@ -103,7 +103,7 @@ class QuizService {
             .get();
         if (snapshot.docs.isNotEmpty) {
           questions = snapshot.docs
-              .map((doc) => Question.fromMap(doc.data()))
+              .map((doc) => Question.fromMap(doc.data(), id: doc.id))
               .toList();
         }
       }
@@ -148,6 +148,40 @@ class QuizService {
       await batch.commit();
     } catch (e) {
       debugPrint("Error batch adding questions: $e");
+      rethrow;
+    }
+  }
+
+  Stream<List<Question>> getQuestions() {
+    if (_firestore == null) {
+      return Stream.value([]);
+    }
+    return _firestore.collection('questions').snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => Question.fromMap(doc.data(), id: doc.id))
+          .toList();
+    });
+  }
+
+  Future<void> updateQuestion(String id, Question question) async {
+    if (_firestore == null) return;
+    try {
+      await _firestore
+          .collection('questions')
+          .doc(id)
+          .update(question.toMap());
+    } catch (e) {
+      debugPrint("Error updating question: $e");
+      rethrow;
+    }
+  }
+
+  Future<void> deleteQuestion(String id) async {
+    if (_firestore == null) return;
+    try {
+      await _firestore.collection('questions').doc(id).delete();
+    } catch (e) {
+      debugPrint("Error deleting question: $e");
       rethrow;
     }
   }

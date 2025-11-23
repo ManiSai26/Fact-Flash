@@ -97,14 +97,29 @@ class QuizService {
     // Try fetching from Firestore first
     try {
       if (_firestore != null) {
-        final snapshot = await _firestore
+        // final snapshot = await _firestore
+        //     .collection('questions')
+        //     .limit(count)
+        //     .get();
+        // if (snapshot.docs.isNotEmpty) {
+        //   questions = snapshot.docs
+        //       .map((doc) => Question.fromMap(doc.data(), id: doc.id))
+        //       .toList();
+        // }
+        final QuerySnapshot allQuestionsSnapshot = await _firestore
             .collection('questions')
-            .limit(count)
             .get();
-        if (snapshot.docs.isNotEmpty) {
-          questions = snapshot.docs
-              .map((doc) => Question.fromMap(doc.data(), id: doc.id))
+        if (allQuestionsSnapshot.docs.isNotEmpty) {
+          List<Question> allQuestions = allQuestionsSnapshot.docs
+              .map(
+                (doc) => Question.fromMap(
+                  doc.data() as Map<String, dynamic>,
+                  id: doc.id,
+                ),
+              )
               .toList();
+          allQuestions.shuffle();
+          questions = allQuestions.take(count).toList();
         }
       }
     } catch (e) {
@@ -166,10 +181,7 @@ class QuizService {
   Future<void> updateQuestion(String id, Question question) async {
     if (_firestore == null) return;
     try {
-      await _firestore
-          .collection('questions')
-          .doc(id)
-          .update(question.toMap());
+      await _firestore.collection('questions').doc(id).update(question.toMap());
     } catch (e) {
       debugPrint("Error updating question: $e");
       rethrow;

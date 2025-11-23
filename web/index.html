@@ -33,8 +33,26 @@
   
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
   
+  <!-- Firebase SDKs (compat version required for Flutter) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
   
-  
+  <!-- Firebase Configuration -->
+  <script>
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDCtfJRGSzBJBEChd9jgdnyetlw175ALtM",
+      authDomain: "fact-flash.firebaseapp.com",
+      projectId: "fact-flash",
+      storageBucket: "fact-flash.firebasestorage.app",
+      messagingSenderId: "496371983416",
+      appId: "1:496371983416:web:5861818425a602ad2f72cd",
+      measurementId: "G-M76Y63395N"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+  </script>
   
   <style id="splash-screen-style">
     html {
@@ -108,8 +126,6 @@
       <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x, splash/img/dark-3x.png 3x, splash/img/dark-4x.png 4x" media="(prefers-color-scheme: dark)">
       <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
   </picture>
-  
-  
   
   <script src="flutter_bootstrap.js" async=""></script>
 

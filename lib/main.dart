@@ -2,17 +2,18 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fact_flash/screens/start_screen.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Initialize Firebase.
-  // Note: For a real app, you must configure your platform-specific options.
-  // If no config is present, we try to initialize with default options if possible,
-  // or catch the error to allow the mock service to run.
+  // Initialize Firebase with platform-specific options
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    debugPrint('Firebase initialized successfully!');
   } catch (e) {
-    debugPrint('Firebase initialization failed or not configured: $e');
+    debugPrint('Firebase initialization failed: $e');
     debugPrint('Running with Mock Data only.');
   }
   runApp(const FactFlashApp());

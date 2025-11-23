@@ -23,11 +23,7 @@ class _StartScreenState extends State<StartScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.flash_on_rounded,
-                size: 80,
-                color: Theme.of(context).primaryColor,
-              ),
+              Image.asset('assets/icon.png', width: 120, height: 120),
               const SizedBox(height: 20),
               Text(
                 'Fact Flash',

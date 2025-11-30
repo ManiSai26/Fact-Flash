@@ -4,16 +4,24 @@ class Question {
   final String? id;
   final String questionText;
   final List<Option> options;
+  final String category; // Category field
 
-  Question({this.id, required this.questionText, required this.options});
+  Question({
+    this.id,
+    required this.questionText,
+    required this.options,
+    this.category = 'General', // Default category
+  });
 
-  factory Question.fromMap(Map<String, dynamic> map, {String? id}) {
+  factory Question.fromMap(Map<String, dynamic> data, String id) {
     return Question(
       id: id,
-      questionText: map['questionText'] ?? '',
+      questionText: data['questionText'] ?? '',
+      category:
+          data['category'] ?? 'General', // Default to 'General' if not present
       options:
-          (map['options'] as List<dynamic>?)
-              ?.map((x) => Option.fromMap(x))
+          (data['options'] as List<dynamic>?)
+              ?.map((opt) => Option.fromMap(opt as Map<String, dynamic>))
               .toList() ??
           [],
     );
@@ -22,7 +30,8 @@ class Question {
   Map<String, dynamic> toMap() {
     return {
       'questionText': questionText,
-      'options': options.map((x) => x.toMap()).toList(),
+      'category': category,
+      'options': options.map((opt) => opt.toMap()).toList(),
     };
   }
 }

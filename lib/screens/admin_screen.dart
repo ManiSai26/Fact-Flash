@@ -35,6 +35,7 @@ class _AdminScreenState extends State<AdminScreen>
     4,
     (_) => TextEditingController(),
   );
+  final TextEditingController _categoryController = TextEditingController();
   int _correctOptionIndex = 0;
   bool _isLoading = false;
 
@@ -54,6 +55,7 @@ class _AdminScreenState extends State<AdminScreen>
     for (var c in _explanationControllers) {
       c.dispose();
     }
+    _categoryController.dispose();
     super.dispose();
   }
 
@@ -76,6 +78,9 @@ class _AdminScreenState extends State<AdminScreen>
       final question = Question(
         questionText: _questionController.text.trim(),
         options: options,
+        category: _categoryController.text.trim().isEmpty
+            ? 'General'
+            : _categoryController.text.trim(),
       );
 
       await _quizService.addQuestion(question);
@@ -103,8 +108,9 @@ class _AdminScreenState extends State<AdminScreen>
       c.clear();
     }
     for (var c in _explanationControllers) {
-      c.clear();
+      c.dispose();
     }
+    _categoryController.clear();
     setState(() => _correctOptionIndex = 0);
   }
 
@@ -162,6 +168,10 @@ class _AdminScreenState extends State<AdminScreen>
                 ? row[6]?.value.toString()
                 : null;
 
+            final category = row.length > 7
+                ? row[7]?.value.toString() ?? 'General'
+                : 'General';
+
             List<Option> optionsList = [];
             for (int i = 0; i < 4; i++) {
               optionsList.add(
@@ -173,7 +183,13 @@ class _AdminScreenState extends State<AdminScreen>
               );
             }
 
-            questions.add(Question(questionText: qText, options: optionsList));
+            questions.add(
+              Question(
+                questionText: qText,
+                options: optionsList,
+                category: category,
+              ),
+            );
           }
         }
 
@@ -310,6 +326,15 @@ class _AdminScreenState extends State<AdminScreen>
               );
             }),
             const SizedBox(height: 20),
+            TextFormField(
+              controller: _categoryController,
+              decoration: const InputDecoration(
+                labelText: 'Category (Optional, defaults to General)',
+                border: OutlineInputBorder(),
+                hintText: 'e.g., Science, History, Math',
+              ),
+            ),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _saveManualQuestion,
               style: ElevatedButton.styleFrom(
@@ -343,7 +368,7 @@ class _AdminScreenState extends State<AdminScreen>
             ),
             const SizedBox(height: 20),
             const Text(
-              'Excel Format:\nCol 1: Question Text\nCol 2-5: Options 1-4\nCol 6: Correct Option Number (1-4)\nCol 7: Explanation (Optional)',
+              'Excel Format:\nCol 1: Question Text\nCol 2-5: Options 1-4\nCol 6: Correct Option Number (1-4)\nCol 7: Explanation (Optional)\nCol 8: Category (Optional, defaults to General)',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16, height: 1.5),
             ),
@@ -479,6 +504,7 @@ class _AdminScreenState extends State<AdminScreen>
   void _showEditDialog(Question question) {
     // Pre-fill controllers
     final qController = TextEditingController(text: question.questionText);
+    final categoryController = TextEditingController(text: question.category);
     final optControllers = List.generate(
       4,
       (i) => TextEditingController(
@@ -519,6 +545,14 @@ class _AdminScreenState extends State<AdminScreen>
                       labelText: 'Question Text',
                     ),
                     maxLines: 2,
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: categoryController,
+                    decoration: const InputDecoration(
+                      labelText: 'Category',
+                      hintText: 'e.g., Science, History, Math',
+                    ),
                   ),
                   const SizedBox(height: 10),
                   ...List.generate(4, (index) {
@@ -580,6 +614,9 @@ class _AdminScreenState extends State<AdminScreen>
                     id: question.id,
                     questionText: qController.text.trim(),
                     options: options,
+                    category: categoryController.text.trim().isEmpty
+                        ? 'General'
+                        : categoryController.text.trim(),
                   );
 
                   if (question.id != null) {

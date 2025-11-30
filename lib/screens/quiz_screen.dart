@@ -9,8 +9,9 @@ import 'results_screen.dart';
 
 class QuizScreen extends StatefulWidget {
   final int totalQuestions;
+  final List<String>? categories;
 
-  const QuizScreen({super.key, required this.totalQuestions});
+  const QuizScreen({super.key, required this.totalQuestions, this.categories});
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -43,7 +44,10 @@ class _QuizScreenState extends State<QuizScreen> {
     } catch (_) {}
 
     final service = QuizService(firestore: firestore);
-    final questions = await service.fetchQuiz(widget.totalQuestions);
+    final questions = await service.fetchQuiz(
+      widget.totalQuestions,
+      categories: widget.categories,
+    );
 
     if (mounted) {
       setState(() {

@@ -91,7 +91,10 @@ class QuizService {
     ),
   ];
 
-  Future<List<Question>> fetchQuiz(int count) async {
+  Future<List<Question>> fetchQuiz(
+    int count, {
+    List<String>? categories,
+  }) async {
     List<Question> questions = [];
 
     // Try fetching from Firestore first
@@ -114,10 +117,18 @@ class QuizService {
               .map(
                 (doc) => Question.fromMap(
                   doc.data() as Map<String, dynamic>,
-                  id: doc.id,
+                  doc.id,
                 ),
               )
               .toList();
+
+          // Filter by categories if provided
+          if (categories != null && categories.isNotEmpty) {
+            allQuestions = allQuestions
+                .where((q) => categories.contains(q.category))
+                .toList();
+          }
+
           allQuestions.shuffle();
           questions = allQuestions.take(count).toList();
         }
@@ -129,11 +140,44 @@ class QuizService {
     // Fallback to mock data if Firestore fails or returns empty
     if (questions.isEmpty) {
       questions = List.from(_mockQuestions);
+
+      // Filter by categories if provided
+      if (categories != null && categories.isNotEmpty) {
+        questions = questions
+            .where((q) => categories.contains(q.category))
+            .toList();
+      }
+
       questions.shuffle(); // Randomize mock data
     }
 
     // Ensure we return exactly 'count' or fewer if not enough exist
     return questions.take(count).toList();
+  }
+
+  // Get all unique categories from Firestore
+  Future<List<String>> getCategories() async {
+    if (_firestore == null) {
+      return ['General']; // Default category
+    }
+
+    try {
+      final QuerySnapshot snapshot = await _firestore
+          .collection('questions')
+          .get();
+
+      final Set<String> categories = {};
+      for (var doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final category = data['category'] as String? ?? 'General';
+        categories.add(category);
+      }
+
+      return categories.toList()..sort();
+    } catch (e) {
+      debugPrint("Error fetching categories: $e");
+      return ['General'];
+    }
   }
 
   Future<void> addQuestion(Question question) async {
@@ -173,7 +217,7 @@ class QuizService {
     }
     return _firestore.collection('questions').snapshots().map((snapshot) {
       return snapshot.docs
-          .map((doc) => Question.fromMap(doc.data(), id: doc.id))
+          .map((doc) => Question.fromMap(doc.data(), doc.id))
           .toList();
     });
   }

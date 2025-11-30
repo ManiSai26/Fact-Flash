@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/question.dart';
 import '../models/option.dart';
 import '../services/quiz_service.dart';
+import 'user_management_screen.dart';
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
@@ -40,7 +41,7 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -219,6 +220,7 @@ class _AdminScreenState extends State<AdminScreen>
             Tab(text: 'Manual Entry'),
             Tab(text: 'Bulk Import (Excel)'),
             Tab(text: 'Manage Questions'),
+            Tab(text: 'User Management'),
           ],
         ),
       ),
@@ -230,6 +232,7 @@ class _AdminScreenState extends State<AdminScreen>
                 _buildManualEntryTab(),
                 _buildBulkImportTab(),
                 _buildManageQuestionsTab(),
+                const UserManagementScreen(),
               ],
             ),
     );

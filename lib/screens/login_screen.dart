@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fact_flash/services/auth_service.dart';
+import 'forgot_password_screen.dart';
 import 'package:fact_flash/screens/start_screen.dart'; // Assuming navigation to StartScreen on success
 
 class LoginScreen extends StatefulWidget {
@@ -152,6 +153,26 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
+                if (_isLogin) ...[
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ForgotPasswordScreen(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Forgot Password?',
+                        style: TextStyle(color: Theme.of(context).primaryColor),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
                 const SizedBox(height: 30),
                 if (_isLoading)
                   const CircularProgressIndicator()
